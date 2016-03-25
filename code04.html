@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<header>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="styles/style.css">
+	
+	<!-- core script -->
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<!-- brush -->
+	<script type="text/javascript" src="scripts/shBrushCpp.js"></script>
+	<!-- css for brush -->
+	<link href="styles/shCore.css" rel="stylesheet" type="text/css" />
+		<link href="styles/shThemeMidnight.css" rel="stylesheet" type="text/css" />
+	
+	<!-- run highlighter -->
+	<script type="text/javascript">
+		SyntaxHighlighter.all()
+	</script>
+	
+	<title>TicTacToe in C: Board</title>
+</header>
+
+<body>
+	<div>
+		<h3>Board, timer and random</h3>
+		<p>In this chapter you implement  auxiliary functions to randomize number, get some time for waiting and functions to check board status. At first you have to add some files to your project: <b>random.h</b> and <b>random.c</b>, next <b>timer.h, timer.c</b> and last one will be <b>board.h, board.c</b>. Don't forget to add <i>include guard</i> to the header files. <br />
+		Let's start from <b>random.h</b>. Add function prototype to header file. Here it's used common algorithm (another implementation you can find on Polish wikipedia -> <a href="http://pl.wikibooks.org/wiki/C/rand">link if you interesting</a>).
+			<pre class="brush: c">
+				#ifndef RANDOM_H
+				#define RANDOM_H
+				
+				/* return random number between [min, max)
+				*  includes min, but not includes max
+				*  ex. min = 0; max = 5
+				*  return number from 0 to 4 inclusive
+				*/
+				int random(int min, int max);
+				
+				#endif /* RANDOM_H */
+			</pre>
+		Random function return value from min to max-1. Implementation in <b>random.c</b> file is showed below.
+			<pre class="brush: c">
+				#include &lt;stdlib.h&gt;
+				#include "random.h"
+				
+				int random(int min, int max)
+				{
+					return ( rand() % (max - min) ) + min;
+				}		
+			</pre>
+		It's worth to say that if you like write function which return value from minimum to maximum inclusive, you have to add + 1 to it. It's look like this:
+			<pre class="brush: c; gutter: false">
+				/* returns value from min to max inclusive */
+				int random(int min, int max)
+				{
+					return ( rand() % (max - min + 1) ) + min;
+				}
+			</pre>
+		Next will be <b>waitFor</b> function declared in <b>timer.h</b> file. It's taken from <a href="http://stackoverflow.com/questions/3930363/implement-time-delay-in-c">stackoverflow topic</a>.
+			<pre class="brush: c">
+				#ifndef TIMER_H
+				#define TIMER_H
+				
+				/* http://stackoverflow.com/questions/3930363/implement-time-delay-in-c */
+				void waitFor(double dly);
+				
+				#endif /* TIMER_H */
+			</pre>
+		Implementation in <b>timer.c</b> file:
+			<pre class="brush: c">
+				#include &lt;time.h&gt;
+				#include "timer.h"
+				
+				void waitFor(double dly)
+				{
+					/* save start clock tick */
+					const clock_t start = clock();
+					
+					clock_t current;
+					do
+					{
+						/* get current clock tick */
+						current = clock();
+					
+						/* break loop when the requested number of seconds have elapsed */
+					} while((double)(current-start)/CLOCKS_PER_SEC &lt; dly);
+				}
+			</pre>
+		Next, there are <b>isEmptySpace</b> and <b>isBoardFull</b> function declared in <b>board.h</b> file. <b>isEmptySpace</b> function checks whether is any free space to put character on board, whereas <b>isBoardFull</b> checks is possible to make move
+			<pre class="brush: c">
+				#ifndef BOARD_H
+				#define BOARD_H
+				
+				/* is empty space in the board ? */
+				int isEmptySpace(int *board, int index);
+				
+				
+				/* no more moves? */
+				int isBoardFull(int *board);
+				
+				
+				#endif /* BOARD_H */
+			</pre>
+		Implementation in <b>board.c</b> file.
+			<pre class="brush: c">
+				#include &lt;ctype.h&gt;
+				#include "board.h"
+				#include "gameconstants.h"
+				
+				/* is empty space in the board ? */
+				int isEmptySpace(int *board, int index)
+				{
+					int character = board[index];
+					if ( isdigit(character) )
+					{
+						return 1;
+					}
+					else
+					{
+						return 0;
+					}
+				}
+				
+				/* no more moves? */
+				int isBoardFull(int *board)
+				{
+					int character;
+					int index;
+				
+					for (index = 0; index &lt; BOARD_SIZE; ++index)
+					{
+						character = board[index];
+						if ( isdigit(character) )
+						{
+							return 0;
+						}
+					}
+					return 1;
+				}
+			</pre>
+
+		That's all for this chapter. You may of course test your functions in main.c file:
+			<pre class="brush: c">
+				#include &lt;conio/conio2.h&gt;
+				#include "draw.h"
+				#include "gamedef.h"
+				#include "gamecons.h"
+				#include "board.h"
+				#include "timer.h"
+				#include "random.h"
+				
+				int main()
+				{
+					int board[BOARD_SIZE] = { '7', '8', '9', '4', '5', '6', '1', '2', '3' };
+					Player player = { PL_COMPUTER2, 'X' };
+					GameStatus status = GS_X_WIN;
+					int result = 0;
+					int i;
+					
+					board[0] = 'X';
+					board[4] = 'X';
+					board[8] = 'X';
+					board[1] = 'O';
+					board[3] = 'O';
+					
+					drawMenu();
+					drawOnceAgain();
+					draw(board, &amp;player, &amp;status);
+					
+					cprintf("%s\n", "random numbers between 10 to 20");
+					for (i = 0; i &lt; 60; ++i)
+					{
+						result = random(10, 21); /* max + 1 */
+						cprintf("%i, ", result);
+					}
+					
+					result = isBoardFull(board);
+					if (result == 1)
+					{
+						cprintf("\n%s", "Board is full");
+					}
+					else
+					{
+						cprintf("\n%s", "Board isn't full");
+					}
+					
+					result = isEmptySpace(board, 6);
+					if (result == 1)
+					{
+						cprintf("\n%s %i", "There is empty space in array index", 6);
+					}
+					else
+					{
+						cprintf("\n%s %i", "There isn't empty space in array index", 6);
+					}
+					
+					
+					getch();
+					return 0;
+				}
+
+			</pre>
+			<a href="sources\code004">Sources for this part</a>.
+		</p>
+	</div>
+	
+	<div class="nav">
+		<a href="code03.html">Back</a>
+		<a href="code05.html">Next</a>
+	</div>
+</body>
+</html>

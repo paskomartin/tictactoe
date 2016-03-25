@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<header>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="styles/style.css">
+	
+	<!-- core script -->
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<!-- brush -->
+	<script type="text/javascript" src="scripts/shBrushCpp.js"></script>
+	<!-- css for brush -->
+	<link href="styles/shCore.css" rel="stylesheet" type="text/css" />
+		<link href="styles/shThemeMidnight.css" rel="stylesheet" type="text/css" />
+	
+	<!-- run highlighter -->
+	<script type="text/javascript">
+		SyntaxHighlighter.all()
+	</script>
+	
+	<title>TicTacToe in C: Input handling and AI</title>
+</header>
+
+<body>
+	<div>
+		<h3>Input handling and computer AI</h3>
+		<p>In this chapter you will implement how to handle input from player, from computer. You'll see how computer AI is implemented. First of all add files to your project: <b>ai.h</b>, <b>ai.c</b>, <b>input.h</b> and <b>input.c</b>. Let's start from <b>input.h</b>.
+			<pre class="brush: c">
+				#ifndef INPUT_H
+				#define INPUT_H
+				
+				#include "gamedef.h"
+				
+				void input(const Player *player, int *board, GameStatus *status);
+				
+				GameStatus inputOnceAgain(void);
+				
+				#endif // INPUT_H			
+			</pre>
+		As you can see, file contains two functions. Function <b>input</b> handle the input data (keypressing) from player or computer. When human player makes move, application waits for keypad pressing. Whilst computer makes move application call 'ai' function to determin where to put character on board. Function <b>inputOnceAgain</b> is used for to get information from user to play again, quit to menu or quit from application. It's time to implement it. Open <b>input.c</b> file. As before, here will be this same situation: a hidden auxiliary functions and interfaces from header file. 
+			<pre class="brush: c">
+				#include &lt;ctype.h&gt;
+				#include &lt;conio/conio2.h&gt;
+				#include "input.h"
+				#include "board.h"
+				#include "gamecons.h"
+				#include "gamedef.h"
+				#include "random.h"
+				#include "ai.h"
+
+				/* ================== Auxiliary functions ======================== */
+
+
+				inline static void playerInput(const Player *player, int *board, GameStatus *status)
+				{
+					int character;
+					
+					if (isBoardFull(board))
+					{
+						*status = GS_NO_MOVES;
+						return;
+					}
+					
+					/* get player input */
+					for(;;)
+					{
+						int index = 0;
+					
+						character = getch();
+						if (!isdigit(character) || character == '0')
+						{
+							continue;
+						}
+						
+						/* mapped input key for array index */
+						switch(character)
+						{
+							case '7': index = 0; break;
+							case '8': index = 1; break;
+							case '9': index = 2; break;
+							case '4': index = 3; break;
+							case '5': index = 4; break;
+							case '6': index = 5; break;
+							case '1': index = 6; break;
+							case '2': index = 7; break;
+							case '3': index = 8; break;
+						}
+					
+					
+						if (isEmptySpace(board, index))
+						{
+							board[index] = player->character;
+							break;
+						}
+					}
+				}
+
+
+				inline static void computerInput(const Player *player, int *board, GameStatus *status)
+				{
+					/* ---- find where put character ----
+					*
+					* first check is board empty
+					*/
+					if (isBoardFull(board))
+					{
+						*status = GS_NO_MOVES;
+						return;
+					}
+					
+					makeComputerMove(board, player->character);
+				}
+
+				/* =============================================================== */
+
+			
+				void input(const Player *player, int *board, GameStatus *status)
+				{
+					if (player->type == PL_PLAYER1 || player->type == PL_PLAYER2)
+					{
+						playerInput(player, board, status);
+					}
+					else if (player->type == PL_COMPUTER1 || player->type == PL_COMPUTER2)
+					{
+						computerInput(player, board, status);
+					}
+				}
+			
+			
+				GameStatus inputOnceAgain(void)
+				{
+					int character;
+					GameStatus status = GS_IDLE;
+					
+					while(status == GS_IDLE)
+					{
+						character = getch();
+						if(character == 'y' || character == 'Y')
+						{
+							status = GS_RUN;
+						}
+						else if (character == 'n' || character == 'N')
+						{
+							status = GS_END_GAME;
+						}
+						else if (character == 'q' || character == 'Q')
+						{
+							status = GS_QUIT;
+						}
+					}
+					
+					return status;
+				}		
+			</pre>
+		Function <b>input</b> calling playerInput for human players to handle keypad press. When player is computer, function call computerInput which call 'ai' function to make move. Functions <b>inputOnceAgain</b> waits for user input character in order to make decision what to do next (how to change application state). It will be show always after game end. Let's look on <b>playerInput</b> function. First is static, it's mean, it will be visible only to end of this .c file. Next: is inline, that means the definition of playerInput will be unwinded in the place where will be called. Instead of jumping inside the function, the definition of function will be put in the calling place. If you have old compiler you may drop 'inline'. Inside function you see that first thing to do is check that board is full. If is, so change game status on GS_NO_MOVE and return from function. If isn't go inside the loop. "Take it easy! What is the strange loop <i>for(;;)</i>?" It's infinite loop! It's used here to get proper keys from user. If user press for example 'a' loops starts from beginning, but if player press one of keypad (from 1 to 9), function set the proper board index, checks is empty space on pressed position, if is - function return.<br />
+		Another is <b>computerInput</b>. In inside is called <b>isBoardFull</b> to check if board is full or not. If is, status will be set on GS_NO_MOVES, otherwise calls <b>makeComputerMove</b> from <b>ai.h</b> header file.
+		<p>Now let's talk about 'AI'. What does is it an mythical AI? AI means Artifical Intelligence. In games such as tic-tac-toe or reversi/othello there is very popular algorithm to making decision by computer - <b>minimax</b> algorithm (for reversi: <b>minimax with alpha-beta pruning</b>). You may read about this algorithm <a href="http://neverstopbuilding.com/minimax">here</a>, <a href="https://www.ocf.berkeley.edu/~yosenl/extras/alphabeta/alphabeta.html">here</a> and <a href="http://www.codeproject.com/Articles/43622/Solve-Tic-Tac-Toe-with-the-MiniMax-algorithm">here</a> or just watch videos: <a href="https://www.youtube.com/watch?v=cGN6LfnOPeo">here</a>, <a href="https://www.youtube.com/watch?v=OkP8BAwfO24">here</a>, <a href="https://www.youtube.com/watch?v=6ELUvkSkCts">here</a>, <a href="https://www.youtube.com/watch?v=STjW3eH0Cik">here</a> and <a href="https://www.youtube.com/watch?v=xBXHtz4Gbdo">here</a>. You will implement minimax algorithm here, but in little other way, you won't implement tree for moves, you will implement decision for current situation (for reversi i recommend build tree decision). So let's open <b>ai.h</b> file and type:
+			<pre class="brush: c">
+				#ifndef AI_H
+				#define AI_H
+
+				/* computer makes move on board,
+				* if there isn't possible to put character on board
+				* function just return, otherwise computer put character
+				* on board
+				*/
+				void makeComputerMove(int *board, int character);
+				
+				#endif // AI_H
+			</pre>
+		As you can see there are only one 'official' interface: <b>makeComputerMove</b> which makes decision what kind of move to do. <br />
+		First, you create a static inline <b>isPossibleToWin</b> function, which checks if is possible situation to make winning move. Open <b>ai.c</b> file and type:
+			<pre class="brush: c">
+			#include &lt;ctype.h&gt;
+			#include "ai.h"
+			#include "gamecons.h"
+			#include "random.h"
+
+			/* ================== Auxiliary functions ======================== */
+			
+			/* Space for auxiliary functions */
+				
+			
+			inline static int isPossibleToWin(int *board, int character)
+			{
+				int result = -1;
+				
+				result = checkHorizontalLines(board, character);
+				if (result &gt; -1)
+				{
+					return result;
+				}
+				
+				result = checkVerticalLines(board, character);
+				if (result &gt; -1)
+				{
+					return result;
+				}
+				
+				result = checkDiagonalLines(board, character);
+				return result;
+			}
+			
+			/* =============================================================== */			
+			</pre>
+		Function <b>isPossibleToWin</b> checks possibilities to win in horizontal lines, vertical lines and diagonal lines. As you can see, refactoring was used here. It's easier to read what this function do. You even can deduce that value <i>-1</i> is returned when isn't winning situation. You have to implement the auxiliaries functions. Go to the line number <i>i</i> (/* Space for auxiliary functions */) and delete comment. Next, you will implement need functions
+			<pre class="brush: c; first-line: 8">
+				/* return index if is possible to win for horizontal line
+				* or return -1 if isn't posible */
+				inline static int checkHorizontalLines(int *board, int character)
+				{
+					int filledCounter = 0; /* how many fields are filled with character */
+					int i;				   /* loop counter */
+					int index = 0;		   /* index or -1 */
+
+					/* check horizontal lines */
+					for(i = 0; i &lt; BOARD_SIZE; ++i)
+					{
+						/* check whether we found almost filled line */
+						if (i != 0 &amp;&amp; (i % 3 == 0) )
+						{
+							if(filledCounter == 2)
+							{
+								if (isdigit(board[index]))
+								{
+									return index;
+								}
+								index = filledCounter = 0;
+							}
+							else
+							{
+								index = filledCounter = 0;
+							}
+						}
+						
+						if(board[i] == character)
+						{
+							++filledCounter;
+						}
+						else //if ( isdigit( board[i] ) )
+						{
+							index = i;
+						}
+					}
+
+					/* check last */
+					if(filledCounter == 2)
+					{
+						if (isdigit(board[index]))
+						{
+							return index;
+						}
+					}
+					
+					return -1;
+				}
+
+				/* return index if is possible to win for vertical line
+				* or return -1 if isn't posible */
+				inline static int checkVerticalLines(int *board, int character)
+				{
+					int filledCounter = 0;			/* how many characters are in
+													 * vertical line */	
+					int i;							/* loop countee */
+					int index = 0;					/* array index */
+					int internalLoopCounter = 0;	/* loop sentinel */
+					int verticalLoopCounter = 0;	/* needs to indicate that 
+													 * algorithm must check  if
+													 * vertical line is filled */
+					
+					
+					/* check vertical lines */
+					for (i = 0 ; i &lt; BOARD_SIZE; i += 3)
+					{
+						if (board[i] == character)
+						{
+							++filledCounter;
+						}
+						else //if ( isdigit( board[i] ) )
+						{
+							index = i;
+						}
+					
+						++verticalLoopCounter;
+					
+						/* check fill */
+						if ( ( verticalLoopCounter != 0 ) &amp;&amp; (verticalLoopCounter % 3 == 0) )
+						{
+							if(filledCounter == 2)
+							{
+								if (isdigit(board[index]))
+								{
+									return index;
+								}
+								index = filledCounter = 0;
+							}
+							else
+							{
+								index = filledCounter = 0;
+								i -= 8;
+							}
+							++internalLoopCounter;
+						
+							if (internalLoopCounter == 3)
+							{
+								break;
+							}
+						}
+					}
+					
+					return -1;
+				}
+
+				
+				/* return index if is possible to win for diagonal line
+				* or return -1 if isn't posible */
+				inline static int checkDiagonalLines(int *board, int character)
+				{
+					int filledCounter = 0;
+					int i;
+					int index = 0;
+					
+					/* check diagonal line
+					*   #      index = 0
+					*    #     index = 4
+					*     #    index = 8
+					*/
+					for(i = 0; i &lt; BOARD_SIZE; i += 4)
+					{
+						if(board[i] == character )
+						{
+							++filledCounter;
+						}
+						else //if ( isdigit(board[i]) )
+						{
+							index = i;
+						}
+					}
+					
+					/* check move */
+					if(filledCounter == 2)
+					{
+						if (isdigit(board[index]))
+						{
+							return index;
+						}
+					}
+					
+					index = filledCounter = 0;
+					
+					/* check diagonal line
+					*     #  index = 2
+					*    #   index = 4
+					*   #    index = 6
+					*/
+					for (i = 2; i &lt; BOARD_SIZE - 2; i += 2)
+					{
+						if(board[i] == character )
+						{
+							++filledCounter;
+						}
+						else
+						{
+							index = i;
+						}
+					}
+					
+					/* check move */
+					if(filledCounter == 2)
+					{
+						if (isdigit(board[index]))
+						{
+							return index;
+						}
+					}
+					
+					index = -1;
+					return index;
+				}			
+			</pre>
+		It's description of <b>checkHorizontalLines</b>. Function used <i>filledCounter</i> to count how many player character are in lines, <i>i</i> is loop counter and <i>index</i> is founded index in game board or -1 if it isn't possible to win. Algorithm checks possibilities for each line. Line <i>20</i> checks if <i>i</i> is different from 0 (because in this situation algorithm didn't start yet) and is it a situation when full line was checked. <i>i</i> is divided by 3 and checks rest of dividing. Modulo sign <i>%</i> says that you want divide i by 3 and get rest. Some examples:
+			<pre class="brush: c; gutter: false">
+				0 % 3 = 0
+				1 % 3 = 1
+				2 % 3 = 2
+				3 % 3 = 0
+				4 % 3 = 1
+				5 % 3 = 2
+				6 % 3 = 0
+				...
+			</pre>
+		Using modulo operation, you can check each line. Next it checks whether <i>filledCounter</i> is 2. If is, you must check if is empty space indicated by <i>index</i> (<i>line 24</i>) and if is, return the <i>index</i>, but if isn't, reset the <i>index</i> and <i>filledCounter</i>. <i>Line 36</i> checks if board contains a player character, if yes, add +1 to <i>filledCounter</i>. If not set index on i. <i>Line 47</i> checks last third line. <br />
+		Next is <b>checkVerticalLines function</b>. Here it's used <i>internalLoopCounter</i> for security reason. Notice, that for loop adds +3 to i in each loop rotation. After checking each line, <i>index</i> will be substracted by 8. You must use another variable (<i>internalLoopCounter</i>) to indicate that, last third line was checked and algorithm must leave loop. If it wasn't used here, there would be a big problem - index array would be out of bounds, so that causes "access violation" and program crash (because you want to read from memory you haven't permission). Algorithm it's little different than before. <i>Line 75</i> checks if player's character is on the board. If is, add +1 to filled counter, if not, set index. After <i>verticalLoopCounter</i> is increase. <i>Line 87</i> checks if is time to check winning situation. <i>Line 89</i> - if was two player's character, that means it's necessary to check what <i>index</i> indicate for. If field is not occupied by player character (<i>line 91</i>), return index. If is, reset <i>index</i> and <i>filledCounter</i>. <br />
+		If <i>filledCounter</i> hadn't value of 2 - reset <i>index</i> and <i>filledCounter</i>, next decrease <i>i</i> by 8. After that increase <i>internalLoopCounter</i> and check if is equal 3 - if yes, that means it's time to leave the loop. <br />
+		Now, I suppose <b>checkDiagonalLines</b> will be self-explained for you.
+		</p>
+		
+		<p>Last function to implement is <b>makeComputerMove</b> which was declared in header file. In this function you impelment <i>minimax</i> algorithm.
+			<pre class="brush: c; first-line: 209">
+				void makeComputerMove(int *board, int character)
+				{
+					int index = -1;								/* board index */
+					int secondCharacter = 0;					/* opponent character */	
+					int possibilities[BOARD_SIZE] = { -1 }; 	/* array with possibilities */
+					int counter = 0;							/* array index for possibilities array */
+					
+					/* can computer win in this turn? */
+					index = isPossibleToWin(board, character);
+					
+					/* yes! */
+					if (index != -1)
+					{
+						board[index] = character;
+						return;
+					}
+					
+					/* no - check whether opponent can win, but first
+					* check the opponent character. */
+					if (character == 'X')
+					{
+						secondCharacter = 'O';
+					}
+					else
+					{
+						secondCharacter = 'X';
+					}
+					
+					
+					/* check if opponent could win in next round */
+					index = isPossibleToWin(board, secondCharacter);
+					
+					/* yes - so block this move */
+					if (index != -1)
+					{
+						board[index] = character;
+						return;
+					}
+					
+					
+					/* no - check if is space to put character */
+					for (index = 0; index &lt; BOARD_SIZE; ++index)
+					{
+						if (isdigit(board[index] ))
+						{
+							possibilities[counter] = index;
+							++counter;
+						}
+					}
+					
+					/* if there no space to make move, that means is draw situation - leave function */
+					if (!counter)
+					{
+						return;
+					}
+					
+					/* is space on board, check if middle is available */
+					if (isdigit(board[4]))
+					{
+						/* random decision - sometimes put character on the middle
+						* and sometimes don't put it
+						*/
+						int r = random(0, 1024);
+						r = r % 2;
+						
+						if (r == 1)
+						{
+							/* yes - just put character */
+							board[4] = character;
+							return;
+						}
+					
+					}
+					
+					/* no - just get a random index from possibilities */
+					index = 4;
+					while (index == 4)
+					{
+						index = random(0, counter); /* from 0 to counter - 1 */
+					}
+					/* get proper index to board array */
+					index = possibilities[index];
+					board[index] = character;
+				}
+			</pre>
+		At the beginning of function, it's checked the winning situation for computer (<i>line 217</i>). If it's possible to win, function sets character on board and return (<i>line 222</i>). <i>Minimax</i> would return here 1 if computer could win. <br />
+		Next step is to check that opponent can win in the next round, if yes - block this move (<i>lines 239, 244</i>) - minimax would returned here -1. Another thing is to check, are there any space on board to put character (<i>lines 250-263</i>). So if is space, check whether the 'hot position' - center of the board - is free, after that, it randomize: put the character on board in this position or not (<i>lines: 271-279</i>). <br />
+		Last piece of code is select random position on board, when computer doesn't make move on center of board.
+		</p>
+		
+		<p><h2>Homework</h2>
+		Try make refactoring <b>makeComputerMove</b>. Divide function on small pieces like: isComputerWin, isOpponentWin, tryMakeMove etc. If needed change variables names to better understanding. Divided pieces of code you may put to <b>ai.c</b> file in order to hide implementation.
+		</p>
+		<a href="sources\code005">Sources for this part</a>.
+		</p>
+	</div>
+	
+	<div class="nav">
+		<a href="code04.html">Back</a>
+		<a href="code06.html">Next</a>
+	</div>
+</body>
+</html>

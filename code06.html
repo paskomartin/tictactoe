@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<header>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="styles/style.css">
+	
+	<!-- core script -->
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<!-- brush -->
+	<script type="text/javascript" src="scripts/shBrushCpp.js"></script>
+	<!-- css for brush -->
+	<link href="styles/shCore.css" rel="stylesheet" type="text/css" />
+		<link href="styles/shThemeMidnight.css" rel="stylesheet" type="text/css" />
+	
+	<!-- run highlighter -->
+	<script type="text/javascript">
+		SyntaxHighlighter.all()
+	</script>
+	
+	<title>TicTacToe in C: Game running</title>
+</header>
+
+<body>
+	<div>
+		<p><h3>Let's run the game</h3>
+		In this chapter you will create the last element - gameRun function. It's the entry point of game. You may think about this function like 'game manager'. Also the function <b>makeComputerMove</b> in <b>ai.c</b> file was refactored. If you didn't make a homework from previous chapter. Don't worry it's everything works as same as before. Of course you may update your <b>ai.c</b> to the new version (link to source is on the down of the page). <br/>
+		First add two files to your project: <b>game.h</b> and <b>game.c</b>. Add the function declaration to the header file:
+			<pre class="brush: c">
+				#ifndef GAME_H
+				#define GAME_H
+				
+				/* run the game
+				* return 0 if everything was ok.
+				* You may implement other return codes
+				*/
+				int gameRun(void);
+				
+				#endif // GAME_H		
+			</pre>
+		As before there will be an official interface (<i>gameRun</i>) and hidden functions.
+		Let open the <b>game.c</b> file and implement the gameRun function:
+			<pre class="brush: c">
+				#include &lt;conio/conio2.h&gt; /* console I/O */
+				#include &lt;time.h&gt; 		/* time */
+				#include &lt;stdlib.h&gt; 		/* srand */
+				#include &lt;string.h&gt; 		/* malloc, free */
+				
+				#include "game.h"
+				#include "gamecons.h"
+				#include "gamedef.h"
+				#include "random.h"
+				#include "board.h"
+				#include "input.h"
+				#include "draw.h"
+				#include "timer.h"
+				
+				/* ================== Auxiliary functions ======================== */
+				
+				/* put auxiliary functions here */
+				
+				/* =============================================================== */
+				
+				int gameRun(void)
+				{
+					MenuStatus menuStatus = MENU_IDLE;
+					GameStatus gameStatus = GS_IDLE;
+					Player *player1 = NULL;
+					Player *player2 = NULL;
+					
+					player1 = (Player*)malloc( sizeof(Player) );
+					player2 = (Player*)malloc( sizeof(Player) );
+					
+					if (player1 == NULL || player2 == NULL)
+					{
+						fprintf(stderr, "%s\n", "Can't allocate memory for struct Player.");
+						exit(EXIT_FAILURE);
+					}
+					
+					srand(time(NULL));
+					
+					while(gameStatus != GS_QUIT)
+					{
+						menuStatus = showMenu();
+						if (menuStatus == MENU_QUIT)
+						{
+							break;
+						}
+					
+						gameStatus = GS_RUN;
+						while (gameStatus == GS_RUN)
+						{
+							preparePlayer(&amp;menuStatus, player1, player2);
+							gameStatus = playGame(player1, player2);
+					
+							/* once again? */
+							if (gameStatus == GS_END_GAME)
+							{
+								drawOnceAgain();
+								gameStatus = inputOnceAgain();
+							}
+						}
+					
+						if (gameStatus == GS_END_GAME)
+							gameStatus = GS_RUN;
+					}
+					
+					free(player1); /* player1 = NULL */
+					free(player2); /* player2 = NULL */
+					
+					return 0;
+				}
+			</pre>
+			At the beginning of the function menu status variable called <i>status</i> is setted to default <i>MENU_IDLE</i> status (<i>line 23</i>). Next <i>gameStatus</i> also gets own default value - <i>GS_IDLE</i> (<i>line 24</i>). Next, the players variable are create. In this case players could be create on the stack because size of <i>struct Player</i> is very small and you use only two variables, but i want to show you how to allocate memory on heap and how to deallocate it. More information about stack and heap you can find <a href="http://gribblelab.org/CBootcamp/7_Memory_Stack_vs_Heap.html">here</a>, <a href="http://stackoverflow.com/questions/79923/what-and-where-are-the-stack-and-heap">here</a> and <a href="http://net-informations.com/faq/net/stack-heap.htm">here</a>. First pointers to the <i>struct Player</i> are declare and <b>NULL</b> is assign to them. What is <i>NULL</i>? NULL is special value to indicate that pointer points on 'nothing'. Next memory is allocate for <i>struct Player</i> (<i>28 and 29</i>). You can read about malloc <a href="http://www.cplusplus.com/reference/cstdlib/malloc/">here</a>. So, malloc takes as argument, how many bytes programmer want to allocate. You don't know exacly how many bytes has <i>struct Player</i>, so you have to use <b>sizeof</b> which returns size of <i>struct Player</i> in bytes. Another thing is malloc returns address of allocated memory block as pointer to void (void*) or <i>NULL</i> if is an error. Returned memory block must be <i>casted</i> to proper 'data type', that's why it's used <i>(Player*)</i> casting.
+			Also You should test whether <i>player1 and player2</i> are different from NULL (<i>line 31</i>). If one of them is NULL it's mean that memory wasn't allocated - so, program must be stop. First the message error is sends to the <i>stderr</i> stream by using <b>fprint</b> which behave like <b>printf</b>, but takes additional argument - <i>file</i>. What are streams use for? Each process opens 3 streams: <i>stdin</i>, <i>stdout</i> and <i>stderr</i>. File descriptor (number) for <i>stdin</i> is 0, for <i>stdout</i> is 1 and for <i>stderr> is 2</i>. About file descriptors you can read <a href="https://en.wikipedia.org/wiki/File_descriptor">here</a>. <i>stdin</i> is a stream using for input data, <i>stdout</i> is a stream using for output data and <i>stderr</i> is a stream for using for error data. More information you can find <a href="https://en.wikipedia.org/wiki/Standard_streams#Standard_input_.28stdin.29">here</a>, <a href="https://en.wikipedia.org/wiki/Standard_streams">here</a>, <a href="http://man7.org/linux/man-pages/man3/stdout.3.html">in Unix/Linux manual</a> or in any Unix/Linux books. To terminate running process You can use two functions: <b>exit</b> with program return code or <b>abort</b> (both from <i>stdblib.h</i>). <i>abort</i> exits from program at once, doesn't  close any files, doesn't destroy any objects or even doesn't call <b>atexit</b> function, so it is using in very dangerous situation. In other hand <b>exit</b> function terminates process normally with regular clean up, all C streams are closed and flushed and all files created with <b>tmpfile</b> are removed. More information: <a href="http://www.cplusplus.com/reference/cstdlib/exit/">exit</a> and <a href="http://www.cplusplus.com/reference/cstdlib/abort/">abort</a>. You must remember that allocated memory must be deallocated (<i>lines 63-64</i>). In good habit is set the pointers to NULL after deallocation, but in this case you can omit it, because you will not use those pointers anymore. Next, srand seed is setted (<i>line 37</i>). It's needed to initialized pseudo-random number generator. It takes a current time as a seed, so program has much more opportunities to get random numbers. Of course <b>rand</b> function is rather poor with randomnes, nonetheless is enough good for this project.<br />
+			While loop is a core of the application. It's works until gameStatus doesn't change his status to GS_QUIT (<i>line 39</i>). First main menu is show. <i>menuStatus</i> depends on what user choice from the main menu, if is MENU_QUIT loop is breaking (<i>line 42-45</i>). The same effect you can achieve like this:
+			<pre class="brush: c;gutter:false">
+				if (menuStatus == MENU_QUIT)
+				{
+					gameStatus = GS_QUIT;
+					continue;
+				}
+			</pre>
+			If menuStatus is different from MENU_QUIT, gameStatus is set to GS_RUN and program goes to the next while loop. At first, players are initialize (depends on menuStatus) and then game start (<i>lines 50-51</i>). When game is finished, the 'once again' message is show. If user choice quit, the application just break the loop, free memory and return 0 code to main function.<br />
+			Let's impelment <b>showMenu</b> function. Delete <i>line 17</i> and type:
+			<pre class="brush: c; first-line:17">
+				/* showing main menu
+				* returns MenuStatus depends on user choice */
+				inline static MenuStatus showMenu(void)
+				{
+					MenuStatus menuStatus = MENU_RUN_GAME;
+					int character = 0;
+					
+					while (menuStatus == MENU_RUN_GAME)
+					{
+						drawMenu();
+						character = getch();
+					
+						switch( character )
+						{
+							case 'q':
+							case 'Q':
+							{
+								menuStatus = MENU_QUIT;
+								break;
+							}
+						
+							case '1':
+							{
+								menuStatus = MENU_PLAYER_VS_COMPUTER;
+								break;
+							}
+						
+							case '2':
+							{
+								menuStatus = MENU_PLAYER_VS_PLAYER;
+								break;
+							}
+						
+							case '3':
+							{
+								menuStatus = MENU_COMPUTER_VS_COMPUTER;
+								break;
+							}
+						}
+					}
+					return menuStatus;
+				}
+			</pre>
+			Code is self-explained here. Next is <b>preparePlayer</b>
+			<pre class="brush: c; first-line:64">
+				/* initialize player1 and player2 depends on menuStatus */
+				inline static void preparePlayer(MenuStatus *status, Player *player1, Player *player2)
+				{
+					int randomNum = random(0, 2);
+					
+					switch(*status)
+					{
+						case MENU_PLAYER_VS_PLAYER:
+						{
+							if (randomNum == 0)
+							{
+								player1->character = 'O';
+								player1->type = PL_PLAYER1;
+						
+								player2->character = 'X';
+								player2->type = PL_PLAYER2;
+							}
+							else
+							{
+								player1->character = 'X';
+								player1->type = PL_PLAYER1;
+						
+								player2->character = 'O';
+								player2->type = PL_PLAYER2;
+							}
+							break;
+						}
+					
+						case MENU_PLAYER_VS_COMPUTER:
+						{
+							if (randomNum == 0)
+							{
+								player1->character = 'O';
+								player1->type = PL_PLAYER1;
+						
+								player2->character = 'X';
+								player2->type = PL_COMPUTER1;
+							}
+							else
+							{
+								player1->character = 'X';
+								player1->type = PL_PLAYER1;
+						
+								player2->character = 'O';
+								player2->type = PL_COMPUTER1;
+							}
+							break;
+						}
+					
+						case MENU_COMPUTER_VS_COMPUTER:
+						{
+							if (randomNum == 0)
+							{
+								player1->character = 'O';
+								player1->type = PL_COMPUTER1;
+						
+								player2->character = 'X';
+								player2->type = PL_COMPUTER2;
+							}
+							else
+							{
+								player1->character = 'X';
+								player1->type = PL_COMPUTER1;
+						
+								player2->character = 'O';
+								player2->type = PL_COMPUTER2;
+							}
+							break;
+						}
+						default:
+						{
+							*status = MENU_ERROR;
+							return;
+							/* break; */
+						}
+					}
+					*status = MENU_RUN_GAME;
+				}
+			</pre>
+			As before this is self-explained too. Another function is <b>playGame</b>
+			<pre class="brush: c; first-line: 146;">
+			
+			inline static GameStatus playGame(Player *player1, Player *player2)
+			{
+				GameStatus status = GS_RUN;
+				int randomNum = random(0, 2);
+				Player *currentPlayer = NULL;
+				Player *otherPlayer = NULL;
+				int board[BOARD_SIZE] = { '7', '8', '9', '4', '5', '6', '1', '2', '3' };
+				
+				if (!randomNum)
+				{
+					currentPlayer = player1;
+					otherPlayer = player2;
+				}
+				else
+				{
+					currentPlayer = player2;
+					otherPlayer = player1;
+				}
+				
+				/* ****************************** */
+				
+				draw(board, currentPlayer, &amp;status);
+				
+				/* main loop */
+				while(status == GS_RUN)
+				{
+					/* check player / computer input */
+					input(currentPlayer, board, &amp;status);
+					/* is end of game? draw? */
+					checkRules(currentPlayer, otherPlayer, board, &amp;status);
+					swapPlayers(&amp;currentPlayer, &amp;otherPlayer);
+					draw(board, currentPlayer, &amp;status);
+					
+					if (currentPlayer->type == PL_COMPUTER1 || currentPlayer->type == PL_COMPUTER2)
+					{
+						waitFor(COMPUTER_SPEED);
+					}
+				}
+				
+				status = GS_END_GAME;
+				return status;
+			}
+			</pre>
+			At the beginning variables and board array are initialized. Notice that additional pointers are used here <i>currentPlayer</i> and <i>otherPlayer</i>. The <i>currentPlayer</i> is used for to indicate at player which make moves now, whilst <i>otherPlayer</i> is used for to indicate at waiting player. Also notice that array <i>board</i> is initialized here by chars mapped to the keypad.
+			Next, board is draw (<i>line 167</i>) and game goes to the main game loop. First input is take from player, rules are check, after that player's pointers are swap and board is draw. If computer player plays with another computer player, game waits for some milliseconds (defined in <b>gamecons.h</b>) then take another loop turn. When game is finished GS_END_GAME status is setted and returned to the <b>gameRun</b> function. Rest of auxiliary function will implement before <b>playGame</b>.
+			<pre class="brush: c; first-line: 144;">
+				/* checks is win situation for players */
+				inline static void isWin(const int currentChar, const int otherChar,
+					const int currentCount, const int otherCount, GameStatus *status)
+				{
+					if (currentCount == 3)
+					{
+						if (currentChar == 'X')
+						{
+							*status = GS_X_WIN;
+						}
+						else if (currentChar == 'O')
+						{
+							*status = GS_O_WIN;
+						}
+					}
+					else if (otherCount == 3)
+					{
+						if (otherChar == 'X')
+						{
+							*status = GS_X_WIN;
+						}
+						else if (otherChar == 'O')
+						{
+							*status = GS_O_WIN;
+						}
+					}
+				}
+
+
+				inline static void checkRules(Player *currentPlayer, Player *otherPlayer,
+					int *board, GameStatus *status)
+				{
+					int currentChar = currentPlayer->character;
+					int otherChar = otherPlayer->character;
+					int currentCount = 0;
+					int otherCount = 0;
+					
+					int verticalCounter = 0;
+					int internalLoopCounter = 0;
+					
+					
+					
+					int character = 0;
+					int i;
+					
+					/* --- check win --- */
+					
+					/* check horizontal lines */
+					/* BOARD_SIZE + 1 becuase is easier to test win situation */
+					for (i = 0; i &lt; BOARD_SIZE + 1; ++i)
+					{
+						/* check win */
+						if ( (i != 0) &amp;&amp; (i % 3 == 0) )
+						{
+							isWin(currentChar, otherChar, currentCount, otherCount, status);
+						
+							if (*status == GS_X_WIN || *status == GS_O_WIN)
+							{
+								return; /* yes, is win situation */
+							}
+							else /* no, reset counters */
+							{
+								currentCount = otherCount = 0;
+							}
+						}
+					
+						/* prevent array out of range */
+						if (i == BOARD_SIZE)
+						{
+							break;
+						}
+					
+						character = board[i];
+						if (character == currentChar)
+						{
+							++currentCount;
+						}
+						else if (character == otherChar)
+						{
+							++otherCount;
+						}
+					}
+					
+					
+					
+					/* check vertical lines */
+					for (i = 0 ; i &lt; BOARD_SIZE; i += 3)
+					{
+						character = board[i];
+						if (character == currentChar)
+						{
+							++currentCount;
+						}
+						else if (character == otherChar)
+						{
+							++otherCount;
+						}
+					
+						++verticalCounter;
+					
+						/* check fill */
+						if ( ( verticalCounter != 0 ) &amp;&amp; (verticalCounter % 3 == 0) )
+						{
+							isWin(currentChar, otherChar, currentCount, otherCount, status);
+					
+							if (*status == GS_X_WIN || *status == GS_O_WIN)
+							{
+								return; /* yes, is win situation */
+							}
+							else /* no, reset counters */
+							{
+								currentCount = otherCount = 0;
+							}
+							++internalLoopCounter;
+						
+							if (internalLoopCounter == 3)
+							{
+								break;
+							}
+							i -= 8;
+						}
+					}
+					
+					
+					
+					/* check diagonal line
+					*   #      index = 0
+					*    #     index = 4
+					*     #    index = 8
+					*/
+					for (i = 0; i &lt; BOARD_SIZE; i += 4)
+					{
+						character = board[i];
+						if (character == currentChar)
+						{
+							++currentCount;
+						}
+						else if (character == otherChar)
+						{
+							++otherCount;
+						}
+					}
+					
+					/* check win situation */
+					isWin(currentChar, otherChar, currentCount, otherCount, status);
+					if (*status == GS_X_WIN || *status == GS_O_WIN)
+					{
+						return; /* yes, is win situation */
+					}
+					else /* no, reset counters */
+					{
+						currentCount = otherCount = 0;
+					}
+					
+					
+					/* check diagonal line
+					*     #  index = 2
+					*    #   index = 4
+					*   #    index = 6
+					*/
+					for (i = 2; i &lt; BOARD_SIZE - 2; i += 2)
+					{
+						character = board[i];
+						if (character == currentChar)
+						{
+							++currentCount;
+						}
+						else if (character == otherChar)
+						{
+							++otherCount;
+						}
+					}
+					
+					/* check win situation */
+					isWin(currentChar, otherChar, currentCount, otherCount, status);
+					if (*status == GS_X_WIN || *status == GS_O_WIN)
+					{
+						return; /* yes, is win situation */
+					}
+					else /* no, reset counters */
+					{
+						currentCount = otherCount = 0;
+					}
+					
+					/* -- there weren't win situation, so check is it a draw situation */
+					if ( isBoardFull(board) == 1 )
+					{
+						*status = GS_DRAW;
+					}
+				}
+
+
+				/* swap players */
+				inline static void swapPlayers(Player **player1, Player **player2)
+				{
+					Player *tmp = *player1;
+					*player1 = *player2;
+					*player2 = tmp;
+				}
+			</pre>
+			<b>isWin</b> function is an auxiliary function used inside <b>checkRules</b> to determine is the winning situation and if is, sets the game status.<br />
+			<b>swapPlayers</b> swaps pointers passed to the function. It takes pointer to pointer on Player. <a href="http://stackoverflow.com/questions/8403447/swapping-pointers-in-c-char-int">More information you can find here</a>. <br />
+			<b>checkRules</b> checks whether is winning situation for current character or draw situation. <br />
+			Last thing to do is write proper <b>main</b> function, so open <b>main.c</b> and type:
+			<pre class="brush:c;">
+				#include "game.h"
+				
+				#define TIC_TAC_TOE_VERSION 1.0.0
+				
+				int main(void)
+				{
+				int status = -1;
+				status = gameRun();
+				return status;
+				}
+			</pre>
+			Compile it and enjoy.		
+			<p></p><h2>Homework</h2> Make refactoring of <b>checkRules</b> function.</p>
+			<a href="sources\code006">Full source</a>.
+			</p>
+		</p>
+	</div>
+	
+	<div class="nav">
+		<a href="code05.html">Back</a>
+		<a href="introduction.html">Introduction</a>
+		<a href="index.html">Index</a>
+	</div>
+</body>
+</html>

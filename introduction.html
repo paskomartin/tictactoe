@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<header>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="styles/style.css">
+	
+	<!-- core script -->
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<!-- brush -->
+	<script type="text/javascript" src="scripts/shBrushCpp.js"></script>
+	<!-- css for brush -->
+	<link href="styles/shCore.css" rel="stylesheet" type="text/css" />
+		<link href="styles/shThemeMidnight.css" rel="stylesheet" type="text/css" />
+	
+	<!-- run highlighter -->
+	<script type="text/javascript">
+		SyntaxHighlighter.all()
+	</script>
+	
+	
+	
+	<title>TicTacToe in C</title>
+</header>
+
+<body>
+	<div name="introduction">
+		<h1>TicTacToe in C</h1>
+		
+		<h3>What is The TicTacToe game?</h3>
+		<p>
+		TicTacToe is a classic game played in school for two person. One player has 'X' and second has 'O' sign to put on board. Board is built with 9 fields and looks like 3x3 matrix. Picture below shows classic TicTacToe play board.</p>
+		<p class="images">
+			<img src="images\board.png" alt="TicTacToe  board" />
+		</p>
+		<p>
+		The rules are simple. Game is divided on turns. On each turn player puts own sign on the board. To win game player must put three of own character in vertical, horizontal or diagonal line. For instance:
+		</p>
+		<p class="images">
+			<img src="images\win.png" alt="Example of winning situation" />
+		</p>
+		<p>
+		There are three possible situation: X wins game, O wins game or is draw.
+		<br />
+		This tutorial shows you how to create and build TicTacToe game using C language. I don't show 'only proper way' to do this. I'd like to show you how to put C language's pieces in 'true' project. Program will contain  The final result you may see on gif below.
+		<br />
+			<p class="images">
+				<img src="images\computerplay.gif" alt="Final program example" />
+			</p>
+		</p>
+	</div>
+	<div name="Preparation">
+	<h3>Let's stop for a while and think about this game.</h3>
+	<p>How typical computer game or program is constructed? It's divided on some part such as: 
+		<ul>
+			<li>main menu</li>
+			<li>initialize game</li>
+			<li>playing game</li>
+			<li>clean up</li>
+		</ul>
+	Each of these step has own task and responsibilities. Main menu allows user to select options. Initialize game stage is needed to prepare game's variables and other things (like: loading files etc.). The major part of application is a main loop. The main loop is a place where event are supported. Inside main loop might be procedures such as: input(), logic() or update(), draw(). Input procedure reacts on user inputs such as pressing keyboard, pressing mouse button, moving mouse etc. So input is a procedure to communicate between user and application. Update (sometimes called logic) checks game rules, sets application flags. Draw shows the result of above actions on the screen. These are inside the main loop which looks like on code below.
+	
+		<pre class="brush: cpp">
+			int run = 1;
+			/* main loop */
+			while(run)
+			{
+				input();
+				update();
+				draw();
+			}
+			/* ... rest of code ...*/
+		</pre>
+	
+	Last element is clean up stage. In this stage application free all allocated memory, close unnecessary files etc, in one words - cleans the mess.
+		<p class="images">
+			<img src="images\appStages.png" alt="Diagram shows each application stages" />
+		</p>
+	</p>
+	<p>Besides stages above, application should has states. States determines what's going on with program. For instance: when menu is showing application may have 'APP_MENU_SHOW' state, in initialization stage would be has 'APP_INITIALIZATION' etc. Game also should has a state, which determines eg.: who's making move now, who's winning etc.
+	Each of those states may be implemented by means of 'enum'.
+	</p>
+	<p>Let's think about game. TicTacToe has a board with 9 fields. It's build like 3x3 matrix. On each empty field may be one of player's character: X or O. For this may be use simple array which will hold information about game fields: is field empty? is X on field or O? Of course game needs information about player: what type of player doing move and what character is? As it mentioned before, applications needs information about application state and game state too.
+	</p>
+	<p>To build game from those blocks, you must think how to connect them together. Skip menu implementation for a moment. So, you must think about these things:
+		<ul>
+			<li>keep information about game board - may be array</li>
+			<li>keep information about player - may be a struct which contains player type and player character</li>
+			<li>maintain information about application - can be implemented using enums</li>
+			<li>maintain information about game - can be implemented using enums</li>
+			<li>how to get information from user - use library for reading keyboard</li>
+			<li>how to display information on screen - use library for displaying</li>
+		</ul>
+	</p>
+	<p>Summarizing, program may behave like in pseudo code below:
+	<pre class="brush: cpp">
+	#define BOARD_SIZE 9
+	/* main application procedure */
+	void run()
+	{
+		GameState gameState;		/* holds status about game */
+		MenuState menuState;		/* holds menu status */
+		Player player1, player2;	/* holds information about players */
+		Player *current = NULL;		/* points on current player */
+		Player *second = NULL;		/* points on waiting player */
+		int board[BOARD_SIZE];		/* represents game board */
+		int onceAgain = 0;			/* flag determines whether
+									 * user want to play again */
+		
+		gameState = GAME_IDLE;
+		menuState = MENU_SHOW;
+		
+		
+		while (gameState != GAME_QUIT)
+		{
+			if(!onceAgain)
+			{
+				/* get menu option */
+				menuState = menu();
+			}
+			
+			if (menuState == MENU_QUIT)
+			{
+				gameState = GAME_QUIT;
+				continue;
+			}
+			
+			/* prepare players
+			 * function may set playerType depending of menuState
+   			 */
+			preparePlayers(&amp;player1, &amp;player2, &amp;menuState);
+			
+			/* ... here you may dice who will play first ...*/
+			if(getRandom(0, 2) == 0)
+			{
+				current = &amp;player1;
+				second = &amp;player2;
+			}
+			else
+			{
+				current = &amp;player2;
+				second = &amp;player1;
+			}
+			
+			/* initialize board */
+			resetBoard(board);
+			
+			
+			gameState = GAME_RUN;
+			
+			/* game main loop */
+			while (gameState == GAME_RUN)
+			{
+				getInput(current);
+				update(board);
+				draw(board);
+				swapPlayers(current, second);
+			}
+			
+			if (gameState == GAME_END)
+			{
+				/* ask user about one more playing */
+				onceAgain = getOnceAgain();
+			}
+		}
+		
+		/* cleans the application mess
+		 * eg. close libraries, deallocate memory, close open files etc. 
+		 */
+		cleanUp();
+	}
+	</pre>
+	</p>
+	<p>Of course it isn't 'only proper way' to this. This is only a clue, how to implement it. So, if you know more or less how to implement it, just do it by yourself, if not i show you my approach to do this.</p>
+	</div>
+	<div class="nav">
+		<a href="code01.html">Next - Prepare your environment</a>
+	</div>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<header>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="styles/style.css">
+	
+	<!-- core script -->
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<!-- brush -->
+	<script type="text/javascript" src="scripts/shBrushCpp.js"></script>
+	<!-- css for brush -->
+	<link href="styles/shCore.css" rel="stylesheet" type="text/css" />
+		<link href="styles/shThemeMidnight.css" rel="stylesheet" type="text/css" />
+	
+	<!-- run highlighter -->
+	<script type="text/javascript">
+		SyntaxHighlighter.all()
+	</script>
+	
+	<title>TicTacToe in C: Draw</title>
+</header>
+
+<body>
+	<div>
+		<h3>Draw the board</h3>
+		<p>It's time to create function which can draw game board. First of all, you must add two files. One is header file called <b>draw.h</b> (add C++ header file as before), next is <b>draw.c</b> file (C++ source file). In the header file you only declare prototype of functions which you want to share to other programmers (interface), whereas in .c file you define the implementation of these functions. In .c file you may declare and define static functions which may be call from other functions in this same .c file. That means, if you want to hide some implementation details (some functions) you can use this method. This method is used here so you may see how it works. Ok, let's add some declarations to the <b>draw.h</b> file.
+			<pre class="brush: c;">
+			#ifndef DRAW_H
+			#define DRAW_H
+			
+			#include "gamedef.h"
+			
+			/* draw menu */
+			void drawMenu(void);
+			
+			/* draws question - Do you want to play once again? */
+			void drawOnceAgain(void);
+			
+			/* draws game board and some information about game */
+			void draw(const int *board, const Player *currentPlayer, const GameStatus *status);
+			
+			#endif // DRAW_H
+			</pre>
+			<ul>
+				<li><b>drawMenu</b> - it's using for drawing main menu. Doesn't take any additional parameters.</li>
+				<li><b>drawOnceAgain</b> - showing message after finished game with question to the player "Do you want play again?". Doesn't take any additional parameters.</li>
+				<li><b>draw</b> - draws game board, which player makes move and game status. Notice, this function gets constant pointers. Why is use for? When you pass data by const pointer to the function (eg. <i>const int *board</i>), that mean, you won't change data inside this function. In first glance on function prototype you can say that everything what is passed by constant pointer will be only read. So board, currentPlayer and status are read only input data. If there won't be a const modificator that means data might be change inside the function, so if for instance board would be <b><i>int *board</i></b> it means, board is <b>an input and an output data</b>.</li>
+			</ul>
+		Open <b>draw.c</b> file and include some header files and empty functions definitions.
+			<pre class="brush: c">
+				/* Notice: here is path to my conio2.h which is in conio folder
+				* so here it's full path declared.
+				* If you use Borland Turbo C++ you probably must change this on:
+				* #include &lt;conio.h&gt;
+				*/
+				#include &lt;conio/conio2.h&gt; /* Console input/output functions */
+				#include &lt;ctype.h&gt;        /* character handling functions */
+				#include "draw.h"         /* your drawing functions */
+				
+				void drawMenu(void)
+				{
+					/* implement it later */
+				}
+				
+				
+				void drawOnceAgain(void)
+				{
+					/* implement it later */
+				}
+				
+				
+				void draw(const int *board, const Player *currentPlayer, const GameStatus *status)
+				{
+					/* implement it later */
+				}
+			</pre>
+		Documentation for conio.h you can find <a href="http://www.programmingsimplified.com/c/conio.h">here</a>, for conio2.h <a href="http://conio.sourceforge.net/docs/html/">here</a> and for ctype.h <a href="http://www.cplusplus.com/reference/cctype/">here</a>.
+		<b>Small tip</b>: i strongly advice you to use cplusplus site (<a href="http://www.cplusplus.com/reference/clibrary/">here</a>) as your C standard library reference. It's very well documented with examples, so use it!<br />
+		Back to code. First, you'll implement the drawMenu function.
+			<pre class="brush: c; first-line:10">
+				void drawMenu(void)
+				{
+					clrscr();
+					
+					textcolor(YELLOW);
+					textbackground(BLUE);
+					cprintf("%s", "***************************\n");
+					cprintf("%s", "*      Tic Tac Toe!       *\n");
+					cprintf("%s", "***************************\n");
+					
+					cprintf("%s", "***************************\n");
+					cprintf("%s", "* 1. Player vs Computer   *\n");
+					cprintf("%s", "* 2. Player vs Player     *\n");
+					cprintf("%s", "* 3. Computer vs Computer *\n");
+					cprintf("%s", "***************************\n");
+					cprintf("%s", "* Q. Quit                 *\n");
+					cprintf("%s", "***************************\n");
+					textcolor(WHITE);
+					textbackground(BLACK);
+				}
+			</pre>
+		<b>clrscr()</b> function (from conio.h) clears console to the background colour. If you set background color, for example to red ( textbackground(RED) ) and after that you use clrscr() you see cleared console with red background.<br />
+		<b>textcolor(YELLOW)</b> - sets character foreground color to yellow and <b>textbackground(BLUE)</b> sets character background color to blue. Color's list name you can check <a href="http://code-reference.com/c/conio.h/textcolor">here</a> or you may check colors values on this <a href="http://dsearls.org/courses/C121CompSci/Conio/Conio.htm">site (section Colors)</a>.
+		Next it's <b>cprintf</b> function. It's similar to printf, but can change color for text. <b>Very important notice. </b>If you pass the second parameter and so on to functions like printf remember to use <i>format specifier</i> first!
+		For more information about it i send you to: <a href="http://stackoverflow.com/questions/7459630/how-can-a-format-string-vulnerability-be-exploited">here</a>, <a href="https://en.wikipedia.org/wiki/Uncontrolled_format_string">here</a> and <a href="http://www.cis.syr.edu/~wedu/Teaching/cis643/LectureNotes_New/Format_String.pdf">here</a>, <a href="https://www.owasp.org/index.php/Format_string_attack">here</a> or <a href="https://pl.wikipedia.org/wiki/Format_string_attack">here</a>. Here we havent' to adding <i>%s</i> format specifier before text, but I decided put it here for good habit reason. <br />
+		Summarizing, the algorithm looks like:
+			<ul>
+				<li>clear screen</li>
+				<li>set foreground text color to yellow</li>
+				<li>set background text color to blue</li>
+				<li>put information on screen</li>
+				<li>set foreground text color to white</li>
+				<li>set background text color to black</li>
+			</ul>
+		Very well, you can check your masterpiece in practice. Open <b>main.c</b>, clear everything and put this:
+			<pre class="brush: c">
+				#include &lt;conio/conio2.h&gt;
+				#include "draw.h"
+				
+				int main()
+				{
+					drawMenu();
+					getch();
+					return 0;
+				}
+			</pre>
+		Compile your project <img src="images/build.png" alt="build project"> and run it <img src="images/run.png">.
+		You should see this screen:
+			<p class="images">
+				<img src="images/result001.png" alt="first compiled result" />
+			</p>
+		Ok, let's back to the <b>draw.c</b> file. Next thing to do it's implement the <b>drawOnceAgain</b> function. Let's do this.
+			<pre class="brush: c; first-line:33">
+			void drawOnceAgain(void)
+			{
+				textcolor(WHITE);
+				cprintf("%s", "\nDo you want play again? ");
+				textcolor(LIGHTGREEN);
+				cprintf("%s", "(y/n)\n");
+				textcolor(LIGHTRED);
+				cprintf("%s", "(q) - quit\n");
+				textcolor(WHITE);
+			}
+			</pre>
+		Doesn't need to explain. Of course you may check how this works by calling it from main.c (i think you know how to do it). Now, it's time to implement the main drawing function.
+			<pre class="brush: c; first-line:47">
+				void draw(const int *board, const Player *currentPlayer, const GameStatus *status)
+				{
+					clrscr();
+					drawBoard(board);
+					drawCurrentPlayer(currentPlayer);
+					drawGameStatus(status);
+				}
+			</pre>
+		The algorithm works like this:
+			<ul>
+				<li>clear screen</li>
+				<li>draw game board</li>
+				<li>draw information who is a current player</li>
+				<li>draw status function, draws game information depends of game status</li>
+			</ul>
+		In draw function there are used <b>drawBoard, drawCurentPlayer and drawGameStatus</b> functions which are not implemented yet. There will be declared and defined in draw.c file in order to hide implementation details. Remember you have to defined them <i>before</i> draw function. Why all drawing code didn't write here? Reason is simple: it's much easier to 'read' code like above than read all implementation details. It's called 'code refactoring'.
+		Before you start implement functions you must to know how to board will be build. The board is an array with 9 int elements. When game starts the array is initialized with numerical characters. It's look like this: <pre class="brush: c; gutter: false">int board[BOARD_SIZE] = { '7', '8', '9', '4', '5', '6', '1', '2', '3' };</pre> Why numerical characters are used here instead of clear array with zeros? It's some advantage here to use it, because you may notice these numbers are mapped to numerical keypad. In the future will be easier to handle input from player. Array board was initialized by chars '7', '8' etc. which are automatically casted to the integer value.
+			<p class="images">
+				<img src="images/keypad.png" alt="keypad mapped on board array" />
+			</p>
+		First, you will implement drawBoard function. To implement it you need one more helper function to draw character on board.
+			<pre class="brush: c; first-line: 45">
+				inline static void printCharacterOnBoard(int character)
+				{
+					textbackground(BLACK);
+					if ( isdigit(character) )
+					{
+						textcolor(DARKGRAY);
+					}
+					else
+					{
+						textcolor(WHITE);
+					}
+					cprintf(" %c ", character);
+				}			
+			</pre>
+			Notice that function is inline and static. Inline means that will be put as-is in place where will be call. Static means, you may access to this function only in this .c file (so is hidden for other files). Function isdigit checks whether character is a digital number or not (<a href="http://www.cplusplus.com/reference/cctype/isdigit/">more</a>).
+			<ul>
+				<li>set background color to black</li>
+				<li>if passed character is a digital number set color to dark grey</li>
+				<li>otherwise (is 'X' or 'O') set color to white</li>
+				<li>show character on screen</li>
+			</ul>
+		Draw board function looks like this:
+			<pre class="brush: c; first-line: 60">
+				inline static void drawBoard(const int *board)
+				{
+					textbackground(BLUE);
+					textcolor(YELLOW);
+					cprintf("%s", "Tic Tac Toe!\n");
+					cprintf("%s", "************\n\n");
+					
+					/* draw board */
+					textcolor(WHITE);
+					textbackground(BLACK);
+					
+					printCharacterOnBoard(board[0]);
+					textcolor(WHITE);
+					cprintf("%s", "|");
+					printCharacterOnBoard(board[1]);
+					textcolor(WHITE);
+					cprintf("%s", "|");
+					printCharacterOnBoard(board[2]);
+					textcolor(WHITE);
+					cprintf("%s", "\n");
+					cprintf("%s", "-----------\n");
+					
+					printCharacterOnBoard(board[3]);
+					textcolor(WHITE);
+					cprintf("%s", "|");
+					printCharacterOnBoard(board[4]);
+					textcolor(WHITE);
+					cprintf("%s", "|");
+					printCharacterOnBoard(board[5]);
+					textcolor(WHITE);
+					cprintf("%s", "\n");
+					cprintf("%s", "-----------\n");
+					
+					printCharacterOnBoard(board[6]);
+					textcolor(WHITE);
+					cprintf("%s", "|");
+					printCharacterOnBoard(board[7]);
+					textcolor(WHITE);
+					cprintf("%s", "|");
+					printCharacterOnBoard(board[8]);
+					textcolor(WHITE);
+					cprintf("%s", "\n");
+				}
+			</pre>
+		Function draws game board. Color depends of character, grey shows 'an empty' place to put sign, the white is used for player character and board frame. <br />
+		Next function is drawCurrentPlayer:
+			<pre class="brush: c; first-line: 105">
+				inline static void drawCurrentPlayer(const Player *currentPlayer)
+				{
+					textcolor(LIGHTCYAN);
+					textbackground(BLUE);
+					cprintf("%s", "\n\nCurrent player ");
+					textcolor(YELLOW);
+					if(currentPlayer->type == PL_COMPUTER1)
+					{
+						cprintf("%s", "COMPUTER 1");
+					}
+					else if (currentPlayer->type == PL_COMPUTER2)
+					{
+						cprintf("%s", "COMPUTER 2");
+					}
+					else if (currentPlayer->type == PL_PLAYER1)
+					{
+						cprintf("%s", "PLAYER 1");
+					}
+					else if (currentPlayer->type == PL_PLAYER2)
+					{
+						cprintf("%s", "PLAYER 2");
+					}
+				
+					textcolor(LIGHTCYAN);
+					cprintf("%s", " --->");
+					
+					textbackground(BLACK);
+					textcolor(LIGHTGREEN);
+					cprintf(" %c\n", currentPlayer->character);
+					textbackground(BLACK);
+					textcolor(WHITE);
+				}			
+			</pre>
+		It draws information about current player depends of player type. Notice that currentPlayer pointer is const here. That means, function will only read currentPlayer. <br />
+		Last function to write is drawGameStatus:
+			<pre class="brush: c; first-line:139">
+				inline static void drawGameStatus(const GameStatus *status)
+				{
+					if (*status == GS_DRAW)
+					{
+						textcolor(LIGHTGREEN);
+						cprintf("%s", "     ###    ###    ###    #       #   #\n");
+						cprintf("%s", "     #  #   #  #  #   #   #       #   #\n");
+						cprintf("%s", "     #  #   #  #  #   #   #   #   #   #\n");
+						cprintf("%s", "     #  #   ###   #####   #   #   #   #\n");
+						cprintf("%s", "     #  #   # #   #   #    #  #  #     \n");
+						cprintf("%s", "     ###    #  #  #   #     ## ##     #\n");
+						textcolor(WHITE);
+					}
+					else if (*status == GS_X_WIN)
+					{
+						textcolor(LIGHTRED);
+						cprintf("%s", "     X   X      #       #  #  #    #  #\n");
+						cprintf("%s", "      X X       #       #  #  ##   #  #\n");
+						cprintf("%s", "       X        #       #  #  # #  #  #\n");
+						cprintf("%s", "       X        #   #   #  #  #  # #  #\n");
+						cprintf("%s", "      X X        #  #  #   #  #   ##   \n");
+						cprintf("%s", "     X   X        ## ##    #  #    #  #\n");
+						textcolor(WHITE);
+					}
+					else if (*status == GS_O_WIN)
+					{
+						textcolor(LIGHTCYAN);
+						cprintf("%s", "      OOO       #       #  #  #    #  #\n");
+						cprintf("%s", "     O   O      #       #  #  ##   #  #\n");
+						cprintf("%s", "    O     O     #       #  #  # #  #  #\n");
+						cprintf("%s", "    O     O     #   #   #  #  #  # #  #\n");
+						cprintf("%s", "     O   O       #  #  #   #  #   ##   \n");
+						cprintf("%s", "      OOO         ## ##    #  #    #  #\n");
+						textcolor(WHITE);
+					}
+				}
+			</pre>
+		It draws information who wins or draw situation. <br />
+		To test your functions you can write main.c like this:
+			<pre class="brush: c">
+				#include &lt;conio/conio2.h&gt;
+				#include "draw.h"
+				#include "gamedef.h"
+				#include "gamecons.h"
+				
+				int main()
+				{
+					int board[BOARD_SIZE] = { '7', '8', '9', '4', '5', '6', '1', '2', '3' };
+					Player player = { PL_COMPUTER2, 'X' };
+					GameStatus status = GS_X_WIN;
+					
+					board[0] = 'X';
+					board[4] = 'X';
+					board[8] = 'X';
+					board[1] = 'O';
+					board[3] = 'O';
+					
+					drawMenu();
+					drawOnceAgain();
+					draw(board, &amp;player, &amp;status);
+					
+					getch();
+					return 0;
+				}
+			</pre>
+		Result:
+			<p class="images">
+				<img src="images/result002.png" alt="Result of draw.h coding" />
+			</p>
+		<a href="sources\code003">Sources for this part</a>.			
+		</p>
+	</div>
+	
+	<div class="nav">
+		<a href="code02.html">Back</a>
+		<a href="code04.html">Next</a>
+	</div>
+</body>
+</html>

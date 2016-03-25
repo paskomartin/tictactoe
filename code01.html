@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<header>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="styles/style.css">
+	
+	<!-- core script -->
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<!-- brush -->
+	<script type="text/javascript" src="scripts/shBrushCpp.js"></script>
+	<!-- css for brush -->
+	<link href="styles/shCore.css" rel="stylesheet" type="text/css" />
+		<link href="styles/shThemeMidnight.css" rel="stylesheet" type="text/css" />
+	
+	<!-- run highlighter -->
+	<script type="text/javascript">
+		SyntaxHighlighter.all()
+	</script>
+	
+	
+	
+	<title>TicTacToe in C: Prepare environment.</title>
+</header>
+
+<body>
+	<div name="beforeStart">
+		<h3>Before starting</h3>
+		<p>This tutorial is directed for beginner programmer in C language. In further stage, I'll show sometimes some basis. If you dislike tutorials like this and you must complain just turn off this page and go do something more interesting, but if you have a time and want to know how to implement it, stay and read. I strongly advice you to rewrite all code. It's very important to you, to learn how to create project, how to use debugger, how to use programming IDE or understanding "what this stupid compiler want from me!". Remember practise is better than only reading and using copy-paste method. One more thing: this tutorial don't show 'only proper way'. There isn't the only right path to coding.<br />So, Are you ready to code? Let's do this!
+		</p>
+		<p>I will use 'conio' library. Conio means "console input/output". This library isn't neither a part of standard C library nor POSIX standard. So, why I use it here? The answer is simple, conio.h is still using on universities in some part of The World. Second reason is, it's easy to code console application by using it. Conio supports text coloring, getting/setting cursor position, getting pressed key and other things. If you are student who use Borland Turbo C you probably have this library. In modern C compiler such as GCC or Visual Studio C compiler there aren't conio.h header and library or is not full implemented. So where can i get this for tutorial? You may download new implementation for Windows from <a href="https://sourceforge.net/projects/conio/">here</a> or if you use Dev-C++ you may download it from <a href="http://devpaks.org/details.php?devpak=16">here</a>. If you haven't possibility to download it you can find it in the "Extra" folder included to this tutorial. Documentation for this library you may find <a href="http://conio.sourceforge.net/docs/html/conio2_8h.html">here</a>. 
+		</p>
+		
+		<h3>Create project in QT Creator</h3>
+		<p>Personaly I'm using QT Creator for this tutorial, but you can use any other IDE such as: Code::Blocks, Dev-C++, Visual Studio etc. Nonetheless I recommend you to install QT Creator (<a href="http://www.qt.io/download-open-source/">link to open source version</a> )  or Visual Studio and start to use it. Is very convenient. You may find free Visual Studio 2015 community version <a href="https://www.microsoft.com/en-us/download/details.aspx?id=48146">here</a>.
+		</p>
+		Unfortunately, i can't explain here how to setup libraries and include folder for others IDE. If you decide to use Turbo C++, there will be probably some changes in code, because compiler and linker are rather old. Turbo C++ users have to include &lt;conio.h&gt; instead of &lt;conio/conio2.h&gt;
+		
+		<!-- TODO: insert installation link here later -->
+		<div class="notice">Notice: If you use Turbo C++ you may skip this section and go to <a href="code02.html">next page.</a></div>
+		<h3>Prepare Conio library.</h3>
+		<p>For any external libraries, I have special folder on C:\ harddrive. 
+		I use library from Dev-C++ repository (the same is in "Extra" folder included to this tutorial). First, I created folder <i>"libs"</i> on my hard drive C, and created subfolders <i>"include"</i> and <i>"lib"</i>. <i>"include"</i> folder contains <i>"conio"</i> folder which has <i><b>conio.h</b></i> header, whilst <i>"lib"</i> has <i><b>libconio.a</b></i>.
+		Picture above shows directory structure.
+			<p class="images">
+				<img src="images/catalog.png" alt="Directory tree for external libraries" />
+			</p>
+		
+		It's time to run QT Creator. Select from top menu <b>"File->New file or Projects...</b>
+			<p class="images">
+				<img src="images/m001.png" alt="Create new project" />
+			</p>
+		then select <b>Non-Qt Project</b> next select <b>Plain C Project</b> and click on <b>Choose...</b> button.
+			<p class="images">
+				<img src="images/m002.png" alt="Select C project" />
+			</p>
+		Type the project name in <b>Name:</b> field and click next.
+			<p class="images">
+				<img src="images/m003.png" alt="Enter project name" />
+			</p>
+		Next window asks you to select compiler. For me it will be GCC/MinGW, but yours may be other (for example: MS 2010 compiler). Click <b>Next</b>.
+			<p class="images">
+				<img src="images/m004.png" alt="Select compiler" />
+			</p>
+
+		On last window, you can choose your version control program. It's in good habit to use control system version (eg: Git, Mercural, Bazaar etc.), but i don't use it here. So my choice is click on <b>Finish</b> button.
+			<p class="images">
+				<img src="images/m005.png" alt="Control system version" />
+			</p>
+		
+		Voila! You've created your first project. Picture below shows you the basis of Qt Creator.
+			<p class="images">
+				<img src="images/m006.png" alt="Qt Creator view" />
+			</p>
+		Next step is configure your project. You must add path to include and lib folders where is conio. To add include path you must write:
+		<code><i>INCLUDEPATH += path_to_include</i></code> In my case is:
+		<code><b>INCLUDEPATH += C:\libs\include</b></code>. To include compiled static library to project you must give path to library and say to linker that you want to include it when you will build project. To add path and library you use this:
+		<code><i>LIBS += -Lpath_to_library -lname_of_library</i></code>. Notice that, before path is <b>-L</b> (it's GCC command line switch), and before library name is <b>-l</b>. Another notice, the real name of static library is 'libconio.a', but to add library to compiled file we drop prefix 'lib' and suffix '.a'. In my case line LIBS looks like this: <code><b>LIBS += -LC:\libs\mingw\lib -lconio </b></code> Picture below shows my settings.
+			<p class="images">
+				<img src="images/m007.png" alt="Qt Creator view" />
+			</p>
+		Let's write simple test code.
+		
+		<pre class="brush: cpp">
+		#include &lt;conio/conio2.h&gt;
+
+		int main(void)
+		{
+			textcolor(LIGHTGREEN);
+			textbackground(RED);
+			gotoxy(30,12);
+			cprintf("Hello World!");
+			getch();
+			return 0;
+		}
+		</pre>
+		Line number 1. means you want to include header conio2.h to project. Why is here <b>&lt;conio/conio2.h&gt;</b> not <b>&lt;conio2.h&gt;</b>? Do you remember that my external libary folders looks like this:
+			<p class="images">
+				<img src="images/folder02.png" alt="Include folder" />
+			</p>
+		Notice that i have subfolder <b>conio</b> in <b>include</b> directory, and i added path to include directory <i>INCLUDEPATH += C:\libs\include</i>. So to include <b>conio.h</b> you must add subfolder name to. <br />
+		Line 5 turns on light green color for foreground of text, whilst line 6 turns on dark red colour for background. Line 7 sets the cursor to column 30 and row 12. On the dos epoch, standard text mode had size: <b>80x25</b>. It means 80 columns and 25 rows. Notice function gotoxy gets arguments counts from 1 not 0! Of course it isn't only that one mode. For more information I send you to <a href="https://en.wikipedia.org/wiki/Text_mode">wikipedia</a>.<br />
+		Line 8 puts text "Hello World!" on screen. Next line waits for key pressing, and return the value of pressed key.<br />
+		Build project <img src="images/build.png" alt="build button" /> and run it <img src="images/run.png" alt="run button" /><br />
+		<b>Congratulation!</b> You've finished setting up your project with conio library.
+		On next page you start code.
+		</p>
+		<p><h3>Some Qt Creator tips</h3>
+			<ul>
+				<li>F2 when cursor is set on function name : swap between definition and declaration</li>
+				<li>F4 key : swap between header file and .c file</li>
+				<li>Ctrl + click on function name : go to declaration</li>
+				<li><b>Ctrl + Space</b> : autocomplete. For example: you had include stdio.h in your project, and want use printf function, so you may start type <i>pri</i> then click left Ctrl and Space then autocomplete do rest for you.</li>
+				<li>Click between line number and funcion definition/declaration : wind/unwind function
+					<p class="images">
+						<img src="images/unwind.png" alt="unwinded function" /><br />
+						<img src="images/wind.png" alt="winded function" />
+					</p>
+				</li>
+				<li>Click before line number : sets breakpoint for debug
+					<p class="images">
+						<img src="images/breakpoint.png" alt="setting breakpoint" />
+					</p>
+				</li>
+				<li>Tools->Options->Text Editor->Font &amp; Colors->Color Scheme : changing color scheme</li>
+				<li>Tools->Options->Text Editor->Completion : you can turn on autocomplete here</li>
+				<li>Tools->Options->C++->Code Style->Edit... : can sets C/C++ code style formating</li> 
+				
+				
+			</ul>
+		</p>
+	</div>
+	<div class="nav">
+		<a href="introduction.html">Back</a>
+		<a href="code02.html">Next</a>
+	</div>
+</body>
+</html>

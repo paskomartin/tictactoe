@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<header>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="styles/style.css">
+	
+	<!-- core script -->
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<!-- brush -->
+	<script type="text/javascript" src="scripts/shBrushCpp.js"></script>
+	<!-- css for brush -->
+	<link href="styles/shCore.css" rel="stylesheet" type="text/css" />
+		<link href="styles/shThemeMidnight.css" rel="stylesheet" type="text/css" />
+	
+	<!-- run highlighter -->
+	<script type="text/javascript">
+		SyntaxHighlighter.all()
+	</script>
+	
+	
+	
+	<title>TicTacToe in C: First steps</title>
+</header>
+
+<body>
+	<div>
+		<h3>Prepare States and Constants</h3>
+		<p>
+		I've divided project for some logical pieces. There are:
+		<ul>
+			<li><b>board.h</b> : auxiliary functions to check board state</li>
+			<li><b>draw.h</b> : drawing functions</li>
+			<li><b>input.h</b> : handle input from player and computer</li>
+			<li><b>gamecons.h</b> : some constants are defined here</li>
+			<li><b>gamedefs.h</b> : some useful definiotions; states, player etc.</li>
+			<li><b>game.h</b> : game manager. It's core of application</li>
+			<li><b>random.h></b> : auxiliary function to random int number</li>
+			<li><b>timer.h</b> : auxiliary timer function</li>
+		</ul>
+		Our game will contains: board, states, players. At first we define some statuses and player. To define it, you must add <b>gamedefs.h</b> header to the project. Right click on project name: <b>TicTacToe->Add new...->C++ header file->choose...</b> and type <b>gamedefs.h</b>. Click on <b>Next</b> and then <b>Finish</b>.
+		<p class="images">
+			<img src="images/m008.png" alt="add header to project" />
+		</p>
+		<p class="images">
+			<img src="images/m009.png" alt="type header name" />
+		</p>
+		<p class="images">
+			<img src="images/m010.png" alt="finish adding header file" />
+		</p>
+		Open <b>gamedefs.h</b> header in editor by double click on it. It's time to define some data. First of all, add include guard to the header (<a href="http://stackoverflow.com/questions/4767068/c-header-guards">read more</a>).
+		<pre class="brush: cpp">
+		#ifndef GAMEDEFS_H
+		#define GAMEDEFS_H
+
+		/* --- put code here! --- */
+		
+		#endif // GAMEDEFS_H
+		</pre>
+		Code above must be in the header file. It protects header for double inclusion problem (<a href="https://en.wikipedia.org/wiki/Include_guard">read more</a>). New structures and enumeration you put between #define and #endif directives.
+	So, let's define PlayerType enum like this:
+		<pre class="brush: cpp; first-line: 4">
+		typedef enum _PlayerType
+		{
+			PL_PLAYER1,
+			PL_PLAYER2,
+			PL_COMPUTER1,
+			PL_COMPUTER2
+		} PlayerType;
+		</pre>
+		Enumeration above describe player type. It'll be: player1, player2, computer1 and computer2. Notice haven't to define value for each enum. It's not necessary. Compiler do it for you. You need this enumeration to set up application, it's describe type of player.
+		I used here <b>typedef</b> keyword so that to avoid necesserity to use <b>enum</b> keyword when variable will be declared. Read more about it <a href="http://stackoverflow.com/questions/612328/difference-between-struct-and-typedef-struct-in-c">here</a>, <a href="http://stackoverflow.com/questions/1675351/typedef-struct-vs-struct-definitions">here</a> or <a href="http://www.tutorialspoint.com/cprogramming/c_typedef.htm">here</a>. Example below shows difference.
+		<pre class="brush: cpp">
+		/*example */
+		void foo()
+		{
+			/* instead of using this*/
+			enum _PlayerType player;
+			/* you may use that */
+			PlayerType player2;
+		}
+		</pre>
+		Back to <b>gamedefs.h</b> file. You have defined a PlayerType enum, so you may define Player structure to. It's look like this:
+		<pre class="brush: cpp; first-line: 13">
+		typedef struct _Player
+		{
+			PlayerType type;
+			int character;
+		} Player;
+		</pre>
+		Player struct contains player type and player game character - O or X. Next define game status.
+		<pre class="brush: cpp; first-line: 20">
+		typedef enum _MenuStatus
+		{
+			MENU_PLAYER_VS_PLAYER,
+			MENU_PLAYER_VS_COMPUTER,
+			MENU_COMPUTER_VS_COMPUTER,
+			MENU_RUN_GAME,
+			MENU_IDLE,
+			MENU_ERROR,
+			MENU_QUIT
+		} MenuStatus;
+		</pre>
+		MenuStatus enum describe the state of the main menu.
+		<ul>
+			<li><b>MENU_PLAYER_VS_PLAYER</b> : user selected Player vs Player game</li>
+			<li><b>MENU_PLAYER_VS_COMPUTER</b> : user selected Player vs Computer game</li>
+			<li><b>MENU_COMPUTER_VS_COMPUTER</b> : user selected Computer vs Computer game</li>
+			<li><b>MENU_RUN_GAME</b> : current game is running</li>
+			<li><b>MENU_IDLE</b> : it's default value when main menu is showed</li>
+			<li><b>MENU_ERROR</b> : state for signal that something bad happend in main menu. It's not supported here, so may be omitted. It's reserved for future purposes.</li>
+			<li><b>MENU_QUIT</b> : user selected quit from application</li>
+		</ul>
+		Last one will be GameStatus.
+		<pre class="brush: cpp; first-line: 32">
+		typedef enum _GameStatus
+		{
+			GS_MENU,
+			GS_RUN,
+			GS_NO_MOVES,
+			GS_X_WIN,
+			GS_O_WIN,
+			GS_DRAW,
+			GS_IDLE,
+			GS_END_GAME,
+			GS_QUIT
+		} GameStatus;
+		</pre>
+		<ul>
+			<li><b>GS_MENU</b> : shows menu</li>
+			<li><b>GS_RUN</b> : the game is running</li>
+			<li><b>GS_NO_MOVES</b> : the are no more moves</li>
+			<li><b>GS_X_WIN</b> : X character wins</li>
+			<li><b>GS_O_WIN</b> : O character wins</li>
+			<li><b>GS_DRAW</b> : no more moves, no one wins, draw situation</li>
+			<li><b>GS_IDLE</b> : initial status</li>
+			<li><b>GS_END_GAME</b> : game is end</li>
+			<li><b>GS_QUIT</b> : quit from program</li>
+		</ul>
+		Now, it's time to add new header file to project. This file will contain program constants. So add <b>gamecons.h</b> header file to project. <b>Don't forget about include guard!</b>. In further part of this tutorial you will operate on board variable. As mentioned before game board is 3x3 matrix. You can represent it in the memory as one or two dimensional array. For simplicity it is used one dimensional int array which size is 9. Why does is int type? It's int type because, keyboard value are stored in int type - "But ASCII table has built with 255 characters. So why not use here a char type?". Of course you can use char type for board array, but after getting character from keyboard you must cast it to the char. I decided use int here. Why int is used for represent keyboard characters? Besides ASCII characters there are control characters. Notice keyboard has function keys such as F1-F12, ALT, CONTROL, ARROWS etc. It must be way to handle this, int is enough to hold information about it (int has no less than 16 bits - 2 bytes). Back to gamecons.h file, add size of board size to it. Another constant value will be COMPUTER_SPEED. It'll be needed to determine speed of computer move. Without it, user can't see how computer put character on the screen.
+		<pre class="brush: cpp">
+		#ifndef GAMECONS_H
+		#define GAMECONS_H
+
+		#define BOARD_SIZE 9
+		#define COMPUTER_SPEED 0.350
+		
+		#endif // GAMECONS_H
+		</pre>
+		<a href="sources\code002">Sources for this part</a>.
+	</p>
+	</div>
+
+	<div class="nav">
+		<a href="code01.html">Back</a>
+		<a href="code03.html">Next</a>
+	</div>
+</body>
+</html>
