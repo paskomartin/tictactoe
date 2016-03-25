@@ -1,1 +1,1 @@
-How to write a tictactoe game in C language using QT Creator.
+This tutorial shows you how to make the tic-tac-toe game using C language. It's written for new C programmers. Project uses here conio2 library which is added to extras folder. It's for Windows only for now, but in the future there will be wrapper function for conio2 library, so stay tuned.
