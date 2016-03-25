@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -O3 -s
 LFLAGS = -lconio -static-libgcc
-INCLUDE = -IC:\libs\mingw\include
-LIBS = -LC:\libs\mingw\lib 
+INCLUDE = -I..\..\extras\include
+LIBS = -L..\..\extras\lib
 OBJS = ai.o board.o draw.o game.o input.o random.o timer.o main.o
 EXEC = tictactoe.exe
 
