@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<header>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="styles/style.css">
+	
+	<!-- core script -->
+	<script type="text/javascript" src="scripts/shCore.js"></script>
+	<!-- brush -->
+	<script type="text/javascript" src="scripts/shBrushCpp.js"></script>
+	<!-- css for brush -->
+	<link href="styles/shCore.css" rel="stylesheet" type="text/css" />
+		<link href="styles/shThemeMidnight.css" rel="stylesheet" type="text/css" />
+	
+	<!-- run highlighter -->
+	<script type="text/javascript">
+		SyntaxHighlighter.all()
+	</script>
+	
+	
+	
+	<title>Kółko i krzyżyk w C</title>
+</header>
+
+<body>
+	<div name="introduction">
+		<h1>Kólko i krzyżyk w C</h1>
+		
+		<h3>Co to jest kółko i krzyżyk?</h3>
+    <p>
+    Kółko i krzyżyk jest klasyczną grą graną w szkole dla dwóch osób. Jeden z graczy posiada znak 'X' a drugi 'O', który może ułożyć na planszy. Plansza zbudowana jest z 9 pól i wygląda jak macierz 3x3. Rysunek poniżej pokazuje klayczną planszę do gry.</p>
+		<p class="images">
+			<img src="images\board.png" alt="TicTacToe  board" />
+		</p>
+    <p>
+    Zasady są proste. Gra jest podzielona na tury. W każdej turze gracz kładzie swój znak na planszy. Aby wygrać grę, gracz musi ułożyć trzy takie same znaki pionowo, poziomo lub po przekątnej. Na przykład tak:
+		</p>
+		<p class="images">
+			<img src="images\win.png" alt="Example of winning situation" />
+		</p>
+    <p>
+    Są trzy możliwe sytuacje: wygrywa X, wygrywa O lub jest remis.
+    <br />
+    Ten samouczek pokazuje jak stworzyć i zbudować grę w kółko i krzyżyk używając języka C. Nie pokazuję tutaj 'jedynej słusznej drogi' aby to zrobić. Chcę Ci zademonstrować jak włożyć kawałki języka C w 'prawdziwy' projekt. Końcowy wynik jest pokazany na gifie poniżej. 
+		<br />
+			<p class="images">
+				<img src="images\computerplay.gif" alt="Final program example" />
+			</p>
+		</p>
+	</div>
+	<div name="Preparation">
+	<h3>Zatrzymaj się na chwilę i pomyśł o grze.</h3>
+	<p>Jak typowa gra komputerowa lub program jest skonstruowany? Jest podzielony na kilka części takich jak:
+		<ul>
+			<li>menu główne</li>
+			<li>initializacja gry</li>
+			<li>granie</li>
+			<li>sprzątanie</li>
+    </ul>
+  Każdy z tych kroków ma swoje własne zadanie i odpowiedzialności. Menu główne pozwala wybrać uzytkownikowi opcje. Etap initializacji gry jest potrzebny aby przygotować zminne gry i inne rzeczy (np. wczytywanie plików etc.). Główną częścią aplikacji jest pętla główna. Pętla główna to miejsce gdzie różne zdarzenia są obsługiwane. Wewnątrz pętli mogą znajdować się procedury takie jak: input(), logic() lub update(), draw(). Procedura input, reaguje na akcje od użytkownika takie jak wciśnięcie klawisza, wciśnięcie klawisza myszki czy też poruszanie myszką. Więc ta procedura służy do komunikowania się pomiędzy aplikacją a użytkownikiem. Update (czasami nazywana także logic) sprawdza reguły gry, ustawia flagi aplikacji. Draw pokazuje wynik powyższych działań na ekranie. Znajdują się one w głównej pętli, którą przedstawiono na kodzie poniżej:
+			<pre class="brush: cpp">
+			int run = 1;
+			/* main loop */
+			while(run)
+			{
+				input();
+				update();
+				draw();
+			}
+			/* ... rest of code ...*/
+		</pre>
+	Ostatnim elementem jest etap sprzątania. W tym etapie aplikacja zwlania całą pamięć zamyka niepotrzebne pliki itd., jednym słowem - sprząta po sobie bałagan
+		<p class="images">
+			<img src="images\appStages.png" alt="Diagram shows each application stages" />
+		</p>
+	</p>
+  <p>Oprócz powyższych etapów, aplikacja powinna posiadać stany. Stany określają co się dzieje w programie. Np.: kiedy menu jest pokazywane, aplikacja może posiadaćstan "APP_MENU_SHOW", podczas etapu inicjalizacji mogłaby mieć 'APP_INITIALIZATION' etc. Sama gra także powinna posiadaćstan, który okresli np.: kto wykonuje aktualnie ruch, kto wygrywa etc.
+Każdy z tych stanów może być zaimplementowany za pomocą enum.
+	</p>
+  <p>Pomyśl przez chwilę o samej grze. Kólko i krzyżyk posiada plansze z 9 polami. Jest ona zbudowana jak macierz 3x3. Na każde puste pole może być postawiony znak gracza: X lub O. Do tego celu może być użyta zwykła tablica która będzie przechowywała informację na temat pól gry: czy pole jest puste? Czy X lub O zajmuje pole? Oczywiście gra potrzebuje także informacji o graczu: jaki rodzaj gracza wykonuje aktualnie ruch i jaki jest jego znak? Jak wspomniano wcześniej, aplikacja potrzebuje informacji o stanie samej aplikacji i stanie gry.
+	</p>
+  <p>Aby zbudować grę z tych klockók musisz pomyśleć jak połączyć je wszystkie razem. Pomijam implementacje menu na chwilę. Więc, musisz pomyśleć o tych rzeczach:
+		<ul>
+			<li>trzymanie informacji o planszy - plansza może być tablicą</li>
+			<li>trzymanie informacji o graczu - może być to struktura, która zawiera rodzaj gracza oraz jego znakr</li>
+			<li>utrzymywanie informacji o aplikacji - może być zaimplementowana za pomocą enum</li>
+			<li>utrzymywanie informacji o grze - może być zaimplementowane za pomocą enum</li>
+			<li>jak pobierać informacje od użytkownika - użycie zewnętrznej biblioteki do odczytu klawiatury</li>
+			<li>jak wyświetlić informacje na eklranie - użycie zewnętrznej biblioteki</li>
+		</ul>
+	</p>
+	<p>Podsumowując, program może zachowywać się jak na pseudo-kodzie poniżej:
+	<pre class="brush: cpp">
+	#define BOARD_SIZE 9
+	/* main application procedure */
+	void run()
+	{
+		GameState gameState;		/* holds status about game */
+		MenuState menuState;		/* holds menu status */
+		Player player1, player2;	/* holds information about players */
+		Player *current = NULL;		/* points on current player */
+		Player *second = NULL;		/* points on waiting player */
+		int board[BOARD_SIZE];		/* represents game board */
+		int onceAgain = 0;			/* flag determines whether
+									 * user want to play again */
+		
+		gameState = GAME_IDLE;
+		menuState = MENU_SHOW;
+		
+		
+		while (gameState != GAME_QUIT)
+		{
+			if(!onceAgain)
+			{
+				/* get menu option */
+				menuState = menu();
+			}
+			
+			if (menuState == MENU_QUIT)
+			{
+				gameState = GAME_QUIT;
+				continue;
+			}
+			
+			/* prepare players
+			 * function may set playerType depending of menuState
+   			 */
+			preparePlayers(&amp;player1, &amp;player2, &amp;menuState);
+			
+			/* ... here you may dice who will play first ...*/
+			if(getRandom(0, 2) == 0)
+			{
+				current = &amp;player1;
+				second = &amp;player2;
+			}
+			else
+			{
+				current = &amp;player2;
+				second = &amp;player1;
+			}
+			
+			/* initialize board */
+			resetBoard(board);
+			
+			
+			gameState = GAME_RUN;
+			
+			/* game main loop */
+			while (gameState == GAME_RUN)
+			{
+				getInput(current);
+				update(board);
+				draw(board);
+				swapPlayers(current, second);
+			}
+			
+			if (gameState == GAME_END)
+			{
+				/* ask user about one more playing */
+				onceAgain = getOnceAgain();
+			}
+		}
+		
+		/* cleans the application mess
+		 * eg. close libraries, deallocate memory, close open files etc. 
+		 */
+		cleanUp();
+	}
+	</pre>
+	</p>
+	<p>To są tylko wskazówki jak to zaimplementować. Więc, jeśli wiesz mniej więcej jak to zrobić - zrób to samemu, jeżeli zaś nie wiesz, pokażę Ci moje podejście jak to zrobić.</p>
+	</div>
+	<div class="nav">
+		<a href="code01.html">Następna strona - przygotowanie środowiska</a>
+	</div>
+</body>
+</html>
