@@ -44,7 +44,7 @@
 			<ul>
 				<li><b>drawMenu</b> - it's using for drawing main menu. Doesn't take any additional parameters.</li>
 				<li><b>drawOnceAgain</b> - showing message after finished game with question to the player "Do you want play again?". Doesn't take any additional parameters.</li>
-				<li><b>draw</b> - draws game board, which player makes move and game status. Notice, this function gets constant pointers. Why is use for? When you pass data by const pointer to the function (eg. <i>const int *board</i>), that mean, you won't change data inside this function. In first glance on function prototype you can say that everything what is passed by constant pointer will be only read. So board, currentPlayer and status are read only input data. If there won't be a const modificator that means data might be change inside the function, so if for instance board would be <b><i>int *board</i></b> it means, board is <b>an input and an output data</b>.</li>
+				<li><b>draw</b> - draws game board, which player makes move and game status. Notice, this function gets constant pointers. Why is used for? When you pass data by const pointer to the function (eg. <i>const int *board</i>), that mean, you won't change data inside this function. In first glance on function prototype you can say that everything what is passed by constant poiter will be read-only. So board, currentPlayer and status are read only input data. If there won't be a const modificator that means data might be change inside the function, so if for instance board would be <b><i>int *board</i></b> it means, board is <b>an input and an output data</b>.</li>
 			</ul>
 		Open <b>draw.c</b> file and include some header files and empty functions definitions.
 			<pre class="brush: c">
@@ -102,7 +102,7 @@
 		<b>clrscr()</b> function (from conio.h) clears console to the background colour. If you set background color, for example to red ( textbackground(RED) ) and after that you use clrscr() you see cleared console with red background.<br />
 		<b>textcolor(YELLOW)</b> - sets character foreground color to yellow and <b>textbackground(BLUE)</b> sets character background color to blue. Color's list name you can check <a href="http://code-reference.com/c/conio.h/textcolor">here</a> or you may check colors values on this <a href="http://dsearls.org/courses/C121CompSci/Conio/Conio.htm">site (section Colors)</a>.
 		Next it's <b>cprintf</b> function. It's similar to printf, but can change color for text. <b>Very important notice. </b>If you pass the second parameter and so on to functions like printf remember to use <i>format specifier</i> first!
-		For more information about it i send you to: <a href="http://stackoverflow.com/questions/7459630/how-can-a-format-string-vulnerability-be-exploited">here</a>, <a href="https://en.wikipedia.org/wiki/Uncontrolled_format_string">here</a> and <a href="http://www.cis.syr.edu/~wedu/Teaching/cis643/LectureNotes_New/Format_String.pdf">here</a>, <a href="https://www.owasp.org/index.php/Format_string_attack">here</a> or <a href="https://pl.wikipedia.org/wiki/Format_string_attack">here</a>. Here we havent' to adding <i>%s</i> format specifier before text, but I decided put it here for good habit reason. <br />
+		For more information about it i send you to: <a href="http://stackoverflow.com/questions/7459630/how-can-a-format-string-vulnerability-be-exploited">here</a>, <a href="https://en.wikipedia.org/wiki/Uncontrolled_format_string">here</a> and <a href="http://www.cis.syr.edu/~wedu/Teaching/cis643/LectureNotes_New/Format_String.pdf">here</a>, <a href="https://www.owasp.org/index.php/Format_string_attack">here</a> or <a href="https://pl.wikipedia.org/wiki/Format_string_attack">here</a>. Here we haven't to adding <i>%s</i> format specifier before text, but I decided put it here for good habit reason. <br />
 		Summarizing, the algorithm looks like:
 			<ul>
 				<li>clear screen</li>
@@ -269,7 +269,7 @@
 					textcolor(WHITE);
 				}			
 			</pre>
-		It draws information about current player depends of player type. Notice that currentPlayer pointer is const here. That means, function will only read currentPlayer. <br />
+		It draws information about current player depends of player type. Notice that currentPlayer pointer is const here. That means, function will only reads currentPlayer. <br />
 		Last function to write is drawGameStatus:
 			<pre class="brush: c; first-line:139">
 				inline static void drawGameStatus(const GameStatus *status)
